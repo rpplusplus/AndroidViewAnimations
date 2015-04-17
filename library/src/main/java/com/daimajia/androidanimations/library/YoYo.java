@@ -25,6 +25,8 @@
 
 package com.daimajia.androidanimations.library;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.view.animation.Interpolator;
 
@@ -45,7 +47,7 @@ public class YoYo {
     private List<Animator.AnimatorListener> callbacks;
     private View target;
 
-    private YoYo(AnimationComposer animationComposer) {
+    public YoYo(AnimationComposer animationComposer) {
         animator = animationComposer.animator;
         duration = animationComposer.duration;
         delay = animationComposer.delay;
@@ -105,13 +107,12 @@ public class YoYo {
             this.target = target;
             return new YoYoString(new YoYo(this).play(), this.target);
         }
-
     }
 
     /**
      * YoYo string, you can use this string to control your YoYo.
      */
-    public static final class YoYoString {
+    public static class YoYoString {
 
         private BaseViewAnimator animator;
         private View target;
@@ -129,6 +130,10 @@ public class YoYo {
             return animator.isRunning();
         }
 
+        public BaseViewAnimator getAnimator() {
+            return animator;
+        }
+
         public void stop(boolean reset){
             animator.cancel();
 
@@ -136,6 +141,51 @@ public class YoYo {
                 animator.reset(target);
         }
 
+        public YoYoString play() {
+            animator.animate();
+            return this;
+        }
+    }
+
+    public static final class YoYoCallFuncString extends YoYoString {
+
+        public interface handle {
+            public void callback();
+        }
+
+        private Animator.AnimatorListener mFakeListener;
+        private handle mCallback;
+
+        private YoYoCallFuncString(BaseViewAnimator animator, View target) {
+            super(animator, target);
+        }
+
+        public YoYoCallFuncString(handle callback) {
+            super(null, null);
+            mCallback = callback;
+        }
+
+        public void setFakeListener(Animator.AnimatorListener fakeListener) {
+            mFakeListener = fakeListener;
+        }
+
+        @Override
+        public YoYoString play() {
+            mFakeListener.onAnimationStart(null);
+
+            try {
+                mCallback.callback();
+            }
+            catch (Exception e)
+            {
+                mFakeListener.onAnimationCancel(null);
+
+            }
+
+            mFakeListener.onAnimationEnd(null);
+
+            return this;
+        }
     }
 
     private BaseViewAnimator play() {
@@ -150,7 +200,7 @@ public class YoYo {
             }
         }
 
-        animator.animate();
+//        animator.animate();
         return animator;
     }
 

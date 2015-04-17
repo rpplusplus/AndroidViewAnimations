@@ -58,7 +58,8 @@ public class MyActivity extends Activity {
 
                                 }
                             })
-                            .playOn(mTarget);
+
+                            .playOn(mTarget).play();
             }
         });
         findViewById(R.id.hello_world).setOnClickListener(new View.OnClickListener() {
